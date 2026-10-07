@@ -5,11 +5,8 @@ export const uploadAvatar = async (file) => {
   const formData = new FormData();
   formData.append('avatar', file);
 
-  return await api.post('/upload/avatar', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
+  // Do NOT set Content-Type manually — Axios/browser sets it with the correct multipart boundary
+  return await api.post('/upload/avatar', formData);
 };
 
 // Upload service gig images (multiple)
@@ -19,11 +16,7 @@ export const uploadAvatar = async (file) => {
     formData.append('images', files[i]);
   }
 
-  return await api.post('/upload/service-images', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
+  return await api.post('/upload/service-images', formData);
 };
 
 // Upload order delivery attachment files (multiple)
@@ -33,9 +26,6 @@ export const uploadDeliveryFiles = async (files) => {
     formData.append('files', files[i]);
   }
 
-  return await api.post('/upload/delivery-files', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
+  return await api.post('/upload/delivery-files', formData);
 };
+

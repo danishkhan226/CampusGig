@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import User from '../models/User.js';
+import { sendVerificationEmail } from './email.service.js';
 
 /**
  * Get user profile by ID
@@ -161,11 +162,20 @@ export const requestStudentVerification = async (userId, collegeEmail) => {
 
   await user.save({ validateBeforeSave: false });
 
+  // Send OTP to college email
+  const emailSent = await sendVerificationEmail(normalizedEmail, otp, user.name);
+
+  const isDev = process.env.NODE_ENV !== 'production';
+
   return {
     collegeEmail: normalizedEmail,
-    verificationCode: otp,
+    // Only expose the raw OTP in non-production (dev hint for testing)
+    ...(isDev || !emailSent ? { verificationCode: otp } : {}),
+    emailSent,
     expiresInMinutes: 15,
-    message: 'Verification code generated successfully'
+    message: emailSent
+      ? `Verification code sent to ${normalizedEmail}`
+      : `Verification code generated (email service not configured — use dev hint)`
   };
 };
 
