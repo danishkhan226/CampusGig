@@ -14,6 +14,9 @@ import ProfilePage from './pages/ProfilePage';
 import MarketplacePage from './pages/MarketplacePage';
 import CreateServicePage from './pages/CreateServicePage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderDetailPage from './pages/OrderDetailPage';
+import OrdersListPage from './pages/OrdersListPage';
 
 export default function App() {
   return (
@@ -67,6 +70,30 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <CreateServicePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrdersListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/checkout/:id"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <OrderDetailPage />
                   </ProtectedRoute>
                 }
               />

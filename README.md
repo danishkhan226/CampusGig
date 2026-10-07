@@ -2,6 +2,12 @@
 
 **CampusGig** is a student-focused freelance marketplace that connects college students who want to **offer their skills and earn** with students looking to **hire affordable services** for their projects and needs.
 
+## 🌐 Live Demo
+
+**Frontend:** [CampusGig Live Website](https://campusgig-frontend-liard.vercel.app?utm_source=chatgpt.com)
+
+**Backend API:** [CampusGig Backend API](https://campusgig-backend.vercel.app/api?utm_source=chatgpt.com)
+
 ## 🚀 Features
 
 * Student registration and authentication
@@ -91,7 +97,7 @@ Make sure you have installed:
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/CampusGig.git
+git clone https://github.com/danishkhan226/CampusGig.git
 cd CampusGig
 ```
 

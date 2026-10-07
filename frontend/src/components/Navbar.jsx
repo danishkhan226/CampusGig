@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, GraduationCap, LogOut, LayoutDashboard, User as UserIcon } from 'lucide-react';
+import { Sparkles, GraduationCap, LogOut, LayoutDashboard, User as UserIcon, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import VerifiedBadge from './VerifiedBadge';
 
@@ -59,6 +59,14 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-2.5">
+                <Link
+                  to="/orders"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-xs font-semibold text-slate-700"
+                >
+                  <Package className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Orders</span>
+                </Link>
+
                 <Link
                   to="/dashboard"
                   className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-xs font-semibold text-slate-700"
