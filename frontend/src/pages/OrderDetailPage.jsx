@@ -5,6 +5,7 @@ import {
   XCircle, ArrowLeft, User, Package, Star
 } from 'lucide-react';
 import * as orderService from '../services/orderService.js';
+import * as uploadService from '../services/uploadService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const STATUS_CONFIG = {
@@ -84,6 +85,8 @@ export default function OrderDetailPage() {
   const [actionLoading, setActionLoading] = useState('');
   const [revisionMessage, setRevisionMessage] = useState('');
   const [deliveryMessage, setDeliveryMessage] = useState('');
+  const [deliveryFiles, setDeliveryFiles] = useState([]);
+  const [uploadingDelivery, setUploadingDelivery] = useState(false);
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
 
@@ -272,19 +275,65 @@ export default function OrderDetailPage() {
                         rows={4}
                         value={deliveryMessage}
                         onChange={(e) => setDeliveryMessage(e.target.value)}
-                        placeholder="Add a message with your delivery (optional)…"
+                        placeholder="Add a message with your delivery..."
                         className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                       />
-                      <p className="text-xs text-slate-400">Note: Cloudinary file upload will be available in Phase 7. Add file links in the message for now.</p>
+
+                      {/* ImageKit Delivery File Upload */}
+                      <div>
+                        <label className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-indigo-200 hover:border-indigo-500 rounded-xl bg-indigo-50/50 transition cursor-pointer text-xs font-semibold text-indigo-700">
+                          <Upload className="h-4 w-4" />
+                          <span>{uploadingDelivery ? 'Uploading files to CDN...' : 'Attach files (ZIP, PDF, images, etc.)'}</span>
+                          <input
+                            type="file"
+                            multiple
+                            disabled={uploadingDelivery}
+                            onChange={async (e) => {
+                              if (!e.target.files?.length) return;
+                              try {
+                                setUploadingDelivery(true);
+                                const res = await uploadService.uploadDeliveryFiles(e.target.files);
+                                setDeliveryFiles((prev) => [...prev, ...res.data.data.urls]);
+                              } catch (uploadErr) {
+                                setError('File upload failed. Please try again.');
+                              } finally {
+                                setUploadingDelivery(false);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                        {deliveryFiles.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {deliveryFiles.map((f, i) => (
+                              <div key={i} className="text-xs text-indigo-600 truncate flex items-center gap-1.5">
+                                <CheckCircle className="h-3 w-3 text-emerald-500 shrink-0" />
+                                <span>Attached File {i + 1}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex gap-3">
                         <button
-                          onClick={() => handleAction(() => orderService.submitWork(id, { deliveryMessage }))}
-                          disabled={!!actionLoading}
-                          className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+                          onClick={() =>
+                            handleAction(() =>
+                              orderService.submitWork(id, {
+                                deliveryMessage,
+                                submittedFiles: deliveryFiles
+                              })
+                            )
+                          }
+                          disabled={!!actionLoading || uploadingDelivery}
+                          className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-60 cursor-pointer"
                         >
                           {actionLoading ? 'Submitting…' : 'Submit Work'}
                         </button>
-                        <button onClick={() => setShowDeliveryForm(false)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition">
+                        <button
+                          onClick={() => setShowDeliveryForm(false)}
+                          className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                        >
                           Cancel
                         </button>
                       </div>

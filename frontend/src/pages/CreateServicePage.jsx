@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as serviceService from '../services/serviceService';
+import * as uploadService from '../services/uploadService';
 import { 
   Sparkles, 
   ArrowLeft, 
@@ -11,7 +12,8 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Upload
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -54,7 +56,28 @@ export default function CreateServicePage() {
 
   const [loading, setLoading] = useState(isEditing);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState('');
+
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploadingImage(true);
+      setError('');
+      const res = await uploadService.uploadServiceImages(files);
+      const uploadedUrls = res.data.data.urls;
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...uploadedUrls]
+      }));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to upload image to ImageKit.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     if (isEditing) {
@@ -389,12 +412,38 @@ export default function CreateServicePage() {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
               Gig Images / Banner Preview
             </label>
+
+            {/* Direct File Upload button */}
+            <div className="mb-3">
+              <label className="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-indigo-200 hover:border-indigo-500 rounded-xl bg-indigo-50/40 hover:bg-indigo-50/80 transition cursor-pointer text-indigo-700 font-semibold text-xs">
+                {uploadingImage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                    <span>Uploading directly to ImageKit CDN...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 text-indigo-600" />
+                    <span>Upload gig images from your device (PNG, JPG, WEBP)</span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleFileUpload}
+                  disabled={uploadingImage}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
             <div className="flex items-center gap-2 mb-2">
               <input
                 type="url"
                 value={imageUrlInput}
                 onChange={(e) => setImageUrlInput(e.target.value)}
-                placeholder="Paste direct image URL (Unsplash, etc.)"
+                placeholder="Or paste direct image URL (Unsplash, etc.)"
                 className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
               <button
@@ -403,7 +452,7 @@ export default function CreateServicePage() {
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Image</span>
+                <span>Add URL</span>
               </button>
             </div>
 

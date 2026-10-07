@@ -10,9 +10,11 @@ import {
   Loader2, 
   Image as ImageIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Upload
 } from 'lucide-react';
 import * as userService from '../services/userService';
+import * as uploadService from '../services/uploadService';
 import { useAuth } from '../context/AuthContext';
 
 const PRESET_AVATARS = [
@@ -155,11 +157,35 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
                 )}
               </div>
               <div className="flex-1 space-y-2">
+                <label className="flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-indigo-300 hover:border-indigo-600 rounded-xl bg-indigo-50/50 hover:bg-indigo-50 transition cursor-pointer text-xs font-semibold text-indigo-700">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload new avatar from device</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      if (!e.target.files?.[0]) return;
+                      try {
+                        setLoading(true);
+                        const res = await uploadService.uploadAvatar(e.target.files[0]);
+                        const newUrl = res.data.data.url;
+                        setFormData((prev) => ({ ...prev, profileImage: newUrl }));
+                        updateUserState({ ...user, profileImage: newUrl });
+                      } catch (err) {
+                        setError('Failed to upload avatar image.');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+
                 <input
                   type="url"
                   value={formData.profileImage}
                   onChange={(e) => setFormData({ ...formData, profileImage: e.target.value })}
-                  placeholder="Paste direct image URL (Unsplash, Imgur, etc.)"
+                  placeholder="Or paste direct image URL (Unsplash, Imgur, etc.)"
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
                 <div className="flex items-center gap-2">
