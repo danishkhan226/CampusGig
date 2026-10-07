@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext';
 import * as chatService from '../services/chatService';
 import * as uploadService from '../services/uploadService';
+import * as aiService from '../services/aiService';
 import { connectSocket, getSocket } from '../services/socket';
 import VerifiedBadge from '../components/VerifiedBadge';
 import {
@@ -21,7 +22,8 @@ import {
   Image as ImageIcon,
   AlertCircle,
   ExternalLink,
-  Smile
+  Smile,
+  Sparkles
 } from 'lucide-react';
 
 export default function ChatPage() {
@@ -44,6 +46,8 @@ export default function ChatPage() {
   const [isPeerTyping, setIsPeerTyping] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [loadingAI, setLoadingAI] = useState(false);
 
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -690,8 +694,60 @@ export default function ChatPage() {
                 </div>
               )}
 
+              {/* AI Quick Reply Suggestions */}
+              <div className="px-3 sm:px-4 pt-2 pb-0 bg-white border-t border-slate-100 shrink-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={loadingAI || messages.length === 0}
+                    onClick={async () => {
+                      try {
+                        setLoadingAI(true);
+                        setAiSuggestions([]);
+                        const lastMsg = [...messages].reverse().find(
+                          (m) => m.senderId?._id !== user._id
+                        );
+                        const senderRole = user.role || 'user';
+                        const res = await aiService.generateChatSuggestions({
+                          lastMessage: lastMsg?.text || '',
+                          senderRole
+                        });
+                        setAiSuggestions(res.data?.suggestions || []);
+                      } catch (err) {
+                        console.error('AI suggestions error:', err);
+                      } finally {
+                        setLoadingAI(false);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 transition cursor-pointer disabled:opacity-40 shrink-0"
+                    title="Get AI quick reply suggestions"
+                  >
+                    {loadingAI ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 text-indigo-600" />
+                    )}
+                    <span>AI Replies</span>
+                  </button>
+
+                  {aiSuggestions.map((suggestion, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setMessageText(suggestion);
+                        setAiSuggestions([]);
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition cursor-pointer truncate max-w-[200px]"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Message Input Bar */}
-              <div className="p-3 sm:p-4 bg-white border-t border-slate-200 shrink-0">
+              <div className="p-3 sm:p-4 bg-white shrink-0">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                   {/* File Upload via ImageKit */}
                   <label className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 transition cursor-pointer shrink-0">

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, Clock, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Clock, CheckCircle, AlertCircle, ChevronRight, Sparkles } from 'lucide-react';
 import * as serviceService from '../services/serviceService.js';
 import * as orderService from '../services/orderService.js';
 import * as paymentService from '../services/paymentService.js';
+import * as aiService from '../services/aiService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
  export default function CheckoutPage() {
@@ -15,6 +16,7 @@ import { useAuth } from '../context/AuthContext.jsx';
   const [requirements, setRequirements] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [enhancingAI, setEnhancingAI] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -167,9 +169,37 @@ import { useAuth } from '../context/AuthContext.jsx';
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Project Requirements <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Project Requirements <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      disabled={enhancingAI || !requirements.trim()}
+                      onClick={async () => {
+                        try {
+                          setEnhancingAI(true);
+                          const res = await aiService.enhanceRequirements({
+                            rawRequirements: requirements,
+                            gigTitle: service?.title,
+                            category: service?.category
+                          });
+                          if (res.data?.enhancedRequirements) {
+                            setRequirements(res.data.enhancedRequirements);
+                          }
+                        } catch (err) {
+                          alert('AI enhancement failed: ' + (err.message || 'Error'));
+                        } finally {
+                          setEnhancingAI(false);
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      title="Structure requirements with Gemini AI"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>{enhancingAI ? 'Structuring...' : 'Enhance with AI'}</span>
+                    </button>
+                  </div>
                   <textarea
                     rows={8}
                     value={requirements}

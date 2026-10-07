@@ -9,6 +9,7 @@ import uploadRoutes from './upload.routes.js';
 import reviewRoutes from './review.routes.js';
 import chatRoutes from './chat.routes.js';
 import adminRoutes from './admin.routes.js';
+import aiRoutes from './ai.routes.js';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/upload', uploadRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/chat', chatRoutes);
 router.use('/admin', adminRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;

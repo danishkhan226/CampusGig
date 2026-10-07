@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as serviceService from '../services/serviceService';
 import * as uploadService from '../services/uploadService';
+import * as aiService from '../services/aiService';
  import { 
   Sparkles, 
   ArrowLeft, 
@@ -57,6 +58,7 @@ export default function CreateServicePage() {
   const [loading, setLoading] = useState(isEditing);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [error, setError] = useState('');
 
   const handleFileUpload = async (e) => {
@@ -328,13 +330,50 @@ export default function CreateServicePage() {
 
           {/* Description */}
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                 Detailed Service Description *
               </label>
-              <span className="text-[11px] text-slate-400">
-                {formData.description.length}/2500 characters
-              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={generatingAI || !formData.title.trim()}
+                  onClick={async () => {
+                    try {
+                      setGeneratingAI(true);
+                      const res = await aiService.generateGigDescription({
+                        title: formData.title,
+                        category: formData.category,
+                        skills: formData.skills,
+                        targetPrice: formData.price
+                      });
+                      if (res.data?.description) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          description: res.data.description,
+                          requirements: prev.requirements || res.data.suggestedRequirements || ''
+                        }));
+                      }
+                    } catch (err) {
+                      alert('AI generation failed: ' + (err.message || 'Error'));
+                    } finally {
+                      setGeneratingAI(false);
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Generate high-converting description using Gemini AI"
+                >
+                  {generatingAI ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  )}
+                  <span>{generatingAI ? 'Writing with Gemini AI...' : 'Generate with Gemini AI'}</span>
+                </button>
+                <span className="text-[11px] text-slate-400">
+                  {formData.description.length}/2500
+                </span>
+              </div>
             </div>
             <textarea
               rows={5}

@@ -11,10 +11,12 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
-  Upload
+  Upload,
+  Sparkles
 } from 'lucide-react';
 import * as userService from '../services/userService';
 import * as uploadService from '../services/uploadService';
+import * as aiService from '../services/aiService';
 import { useAuth } from '../context/AuthContext';
 
 const PRESET_AVATARS = [
@@ -43,6 +45,7 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
   const [newLink, setNewLink] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const [enhancingBio, setEnhancingBio] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
@@ -257,9 +260,37 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Bio / About Me
               </label>
-              <span className="text-[11px] text-slate-400">
-                {formData.bio.length} / 500 characters
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={enhancingBio}
+                  onClick={async () => {
+                    try {
+                      setEnhancingBio(true);
+                      const res = await aiService.enhanceBio({
+                        bio: formData.bio,
+                        skills: skills,
+                        collegeName: formData.collegeName
+                      });
+                      if (res.data?.enhancedBio) {
+                        setFormData((prev) => ({ ...prev, bio: res.data.enhancedBio }));
+                      }
+                    } catch (err) {
+                      alert('AI bio enhance failed: ' + (err.message || 'Error'));
+                    } finally {
+                      setEnhancingBio(false);
+                    }
+                  }}
+                  className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  title="Polish bio with Gemini AI"
+                >
+                  <Sparkles className="w-3 h-3 text-indigo-600" />
+                  <span>{enhancingBio ? 'Polishing...' : 'Polish with AI'}</span>
+                </button>
+                <span className="text-[11px] text-slate-400">
+                  {formData.bio.length} / 500
+                </span>
+              </div>
             </div>
             <textarea
               rows={3}
