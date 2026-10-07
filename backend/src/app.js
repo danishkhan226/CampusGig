@@ -13,9 +13,11 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration — CLIENT_URL supports comma-separated list for multi-origin (e.g. "https://campusgig.vercel.app,http://localhost:5173")
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  ...(process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',').map((u) => u.trim())
+    : []),
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ];
