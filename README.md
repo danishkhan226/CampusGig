@@ -20,7 +20,6 @@
 * Real-time chat between clients and freelancers
 * Ratings and reviews
 * Student verification
-* Notifications
 * Admin dashboard for platform management
 
 ## 🛠️ Tech Stack
@@ -94,12 +93,6 @@ Make sure you have installed:
 * MongoDB or a MongoDB Atlas account
 * Git
 
-### Clone the Repository
-
-```bash
-git clone https://github.com/danishkhan226/CampusGig.git
-cd CampusGig
-```
 
 ### Install Dependencies
 
@@ -117,49 +110,6 @@ cd ../backend
 npm install
 ```
 
-### Environment Variables
-
-Create a `.env` file inside the `backend` directory.
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-CLIENT_URL=http://localhost:5173
-
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-
-RAZORPAY_KEY_ID=
-RAZORPAY_KEY_SECRET=
-
-GEMINI_API_KEY=
-```
-
-Never commit your `.env` file to GitHub.
-
-### Run the Application
-
-Start the backend:
-
-```bash
-cd backend
-npm run dev
-```
-
-Start the frontend in another terminal:
-
-```bash
-cd frontend
-npm run dev
-```
-
-The application will be available at:
-
-```text
-http://localhost:5173
-```
 
 ## 🔄 Platform Workflow
 
@@ -200,10 +150,6 @@ Rating & Review
 * College-specific marketplaces
 * Advanced analytics
 * Automated dispute resolution
-
-## 👨‍💻 Author
-
-**Danish Khan**
 
 ---
 

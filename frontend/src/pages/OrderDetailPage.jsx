@@ -425,6 +425,25 @@ export default function OrderDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Payment Summary */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-2 text-sm">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Escrow Payment</p>
+              <div className="flex justify-between text-slate-600">
+                <span>Method</span>
+                <span className="font-medium text-slate-800">Razorpay</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Payment ID</span>
+                <span className="font-mono text-xs text-slate-700 truncate max-w-[140px]">
+                  {order.razorpayPaymentId || 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Status</span>
+                <span className="font-semibold text-emerald-600">Verified Secure</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

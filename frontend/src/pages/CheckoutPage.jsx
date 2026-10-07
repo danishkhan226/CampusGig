@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ShoppingBag, Clock, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react';
 import * as serviceService from '../services/serviceService.js';
 import * as orderService from '../services/orderService.js';
+import * as paymentService from '../services/paymentService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function CheckoutPage() {
@@ -38,18 +39,82 @@ export default function CheckoutPage() {
     setSubmitting(true);
     setError('');
     try {
+      // 1. Create CampusGig order
       const res = await orderService.createOrder(serviceId, requirements);
-      const orderId = res.data.data._id;
-      // In Phase 6 we'll open Razorpay here. For now simulate paid:
-      await orderService.confirmPayment(orderId, {
-        razorpayOrderId: 'pay_simulation',
-        razorpayPaymentId: 'pay_simulation_' + Date.now(),
-        razorpaySignature: 'signature_simulation'
+      const order = res.data.data;
+      const orderId = order._id;
+
+      // 2. Create Razorpay Order on Backend
+      const paymentOrderRes = await paymentService.createPaymentOrder(orderId);
+      const paymentData = paymentOrderRes.data.data;
+
+      // 3. Check if simulated or live Razorpay
+      if (paymentData.isSimulation) {
+        // Direct simulation verification for environments without live Razorpay keys
+        await paymentService.verifyPayment({
+          orderId,
+          razorpayOrderId: paymentData.razorpayOrderId,
+          razorpayPaymentId: `pay_sim_${Date.now()}`,
+          razorpaySignature: 'simulated_signature'
+        });
+        navigate(`/orders/${orderId}`, { state: { justPlaced: true } });
+        return;
+      }
+
+      // 4. Load Razorpay SDK and open checkout modal
+      const isLoaded = await paymentService.loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error('Razorpay SDK failed to load. Please check your internet connection.');
+      }
+
+      const options = {
+        key: paymentData.keyId,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        name: 'CampusGig',
+        description: `Order #${orderId.slice(-6).toUpperCase()} - ${service.title}`,
+        order_id: paymentData.razorpayOrderId,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: ''
+        },
+        theme: {
+          color: '#4f46e5' // Indigo 600
+        },
+        handler: async function (response) {
+          try {
+            // 5. Verify payment signature on backend server
+            await paymentService.verifyPayment({
+              orderId,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature
+            });
+            navigate(`/orders/${orderId}`, { state: { justPlaced: true } });
+          } catch (verificationErr) {
+            setError(
+              verificationErr.response?.data?.message ||
+                'Payment verification failed. Please contact support if money was deducted.'
+            );
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setSubmitting(false);
+            setError('Payment cancelled. Your order remains pending in Orders.');
+          }
+        }
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.on('payment.failed', function (response) {
+        setError(response.error?.description || 'Payment processing failed.');
+        setSubmitting(false);
       });
-      navigate(`/orders/${orderId}`, { state: { justPlaced: true } });
+      razorpayInstance.open();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place order. Please try again.');
-    } finally {
+      setError(err.response?.data?.message || err.message || 'Failed to place order. Please try again.');
       setSubmitting(false);
     }
   };
