@@ -8,7 +8,7 @@ if (apiKey) {
 
 const getModel = () => {
   if (!genAI) return null;
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  return genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
 };
 
 /**
