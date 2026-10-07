@@ -6,7 +6,10 @@ import {
 } from 'lucide-react';
 import * as orderService from '../services/orderService.js';
 import * as uploadService from '../services/uploadService.js';
+import * as reviewService from '../services/reviewService.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import ReviewModal from '../components/ReviewModal.jsx';
+import ReviewCard from '../components/ReviewCard.jsx';
 
  const STATUS_CONFIG = {
   pending_payment: { label: 'Pending Payment', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
@@ -89,15 +92,32 @@ export default function OrderDetailPage() {
   const [uploadingDelivery, setUploadingDelivery] = useState(false);
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [orderReview, setOrderReview] = useState(null);
 
   const fetchOrder = async () => {
     try {
       const res = await orderService.getOrder(id);
-      setOrder(res.data.data);
+      const orderData = res.data.data;
+      setOrder(orderData);
+      if (orderData.isReviewed) {
+        fetchReview(orderData._id);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Order not found or access denied.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReview = async (orderId) => {
+    try {
+      const res = await reviewService.getOrderReview(orderId);
+      if (res.data?.review) {
+        setOrderReview(res.data.review);
+      }
+    } catch {
+      // Review not found or quiet fail
     }
   };
 
@@ -397,19 +417,42 @@ export default function OrderDetailPage() {
               )}
 
               {isBuyer && order.status === 'completed' && !order.isReviewed && (
-                <Link
-                  to={`/services/${order.serviceId._id}?review=true`}
-                  className="w-full py-2.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-sm font-semibold hover:bg-amber-100 transition text-center flex items-center justify-center gap-2"
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(true)}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-bold shadow-md shadow-amber-100 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Star className="h-4 w-4" />
-                  Leave a Review
-                </Link>
+                  <Star className="h-4 w-4 fill-white" />
+                  Rate & Review Freelancer
+                </button>
               )}
 
               {['completed', 'cancelled', 'rejected'].includes(order.status) && (
-                <p className="text-sm text-slate-400 text-center py-2">This order is {order.status}. No further actions available.</p>
+                <p className="text-sm text-slate-400 text-center py-2">
+                  This order is {order.status}. No further order status changes available.
+                </p>
               )}
             </div>
+
+            {/* Completed Order Review Card */}
+            {orderReview && (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h2 className="font-semibold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
+                    Verified Client Review
+                  </h2>
+                  <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                    Verified Order
+                  </span>
+                </div>
+                <ReviewCard
+                  review={orderReview}
+                  currentUserId={user?._id}
+                  onReviewUpdated={(updated) => setOrderReview(updated)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -495,6 +538,17 @@ export default function OrderDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Review Modal for Buyer */}
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          order={order}
+          onReviewSubmitted={(newReview) => {
+            setOrderReview(newReview);
+            setOrder((prev) => ({ ...prev, isReviewed: true }));
+          }}
+        />
       </div>
     </div>
   );

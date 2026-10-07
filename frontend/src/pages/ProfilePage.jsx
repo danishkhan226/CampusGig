@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as userService from '../services/userService';
+import * as reviewService from '../services/reviewService';
 import VerifiedBadge from '../components/VerifiedBadge';
 import EditProfileModal from '../components/EditProfileModal';
 import StudentVerificationModal from '../components/StudentVerificationModal';
+import StarRating from '../components/StarRating';
+import ReviewCard from '../components/ReviewCard';
 import { 
   Building, 
   GraduationCap, 
@@ -36,6 +39,11 @@ export default function ProfilePage() {
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('about'); // 'about' | 'services' | 'reviews'
 
+  // Phase 8: Reviews State
+  const [userReviews, setUserReviews] = useState([]);
+  const [userReviewsLoading, setUserReviewsLoading] = useState(false);
+  const [userReviewsPagination, setUserReviewsPagination] = useState({ page: 1, pages: 1, total: 0 });
+
   useEffect(() => {
     if (isMe && authUser) {
       setProfileUser(authUser);
@@ -44,6 +52,31 @@ export default function ProfilePage() {
       fetchUserProfile(targetId);
     }
   }, [targetId, isMe, authUser]);
+
+  useEffect(() => {
+    if (targetId && activeTab === 'reviews') {
+      fetchUserReviews(targetId, 1);
+    }
+  }, [targetId, activeTab]);
+
+  const fetchUserReviews = async (userId, page = 1) => {
+    try {
+      setUserReviewsLoading(true);
+      const res = await reviewService.getUserReviews(userId, { page, limit: 10 });
+      setUserReviews(res.data?.reviews || []);
+      if (res.data?.pagination) {
+        setUserReviewsPagination(res.data.pagination);
+      }
+    } catch {
+      // quiet fail
+    } finally {
+      setUserReviewsLoading(false);
+    }
+  };
+
+  const handleReviewUpdated = (updated) => {
+    setUserReviews((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
+  };
 
   const fetchUserProfile = async (userId) => {
     try {
@@ -228,7 +261,9 @@ export default function ProfilePage() {
               className={`pb-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${activeTab === 'reviews' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
             >
               <span>Reviews</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">Phase 8</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-indigo-50 text-indigo-700 font-bold border border-indigo-100">
+                {profileUser.totalReviews || 0}
+              </span>
             </button>
           </div>
         </div>
@@ -365,14 +400,108 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Tab Content: Reviews Placeholder */}
+        {/* Tab Content: Reviews */}
         {activeTab === 'reviews' && (
-          <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm space-y-4">
-            <MessageSquare className="w-12 h-12 text-amber-400 mx-auto" />
-            <h3 className="text-xl font-bold text-slate-900">Peer Reviews & Ratings</h3>
-            <p className="text-sm text-slate-600 max-w-md mx-auto">
-              Verified order reviews from student clients will display here with star ratings and feedback once Phase 8 (Reviews) is active.
-            </p>
+          <div className="space-y-6">
+            {/* Reviews Summary Banner */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center text-center">
+                  <span className="text-xl font-extrabold text-amber-600 leading-none">
+                    {profileUser.rating > 0 ? profileUser.rating.toFixed(1) : 'New'}
+                  </span>
+                  <div className="mt-0.5">
+                    <StarRating rating={profileUser.rating || 0} size="sm" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Peer Reputation & Feedback
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {profileUser.totalReviews > 0
+                      ? `Based on ${profileUser.totalReviews} verified order review${profileUser.totalReviews === 1 ? '' : 's'}`
+                      : 'No client reviews received yet'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6 text-xs text-slate-600 border-t sm:border-t-0 sm:border-l border-slate-100 pt-3 sm:pt-0 sm:pl-6">
+                <div>
+                  <span className="text-slate-400 block">Total Reviews</span>
+                  <span className="font-bold text-slate-900 text-sm">{profileUser.totalReviews || 0}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block">Gigs Completed</span>
+                  <span className="font-bold text-slate-900 text-sm">{profileUser.completedOrders || 0}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Reviews List */}
+            {userReviewsLoading ? (
+              <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center">
+                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mx-auto mb-3" />
+                <p className="text-xs font-medium text-slate-500">Loading student reviews...</p>
+              </div>
+            ) : userReviews.length > 0 ? (
+              <div className="space-y-4">
+                {userReviews.map((rev) => (
+                  <div key={rev._id} className="space-y-2">
+                    {rev.serviceId && (
+                      <div className="flex items-center gap-2 text-xs text-slate-500 px-1">
+                        <Package className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>For gig:</span>
+                        <Link
+                          to={`/services/${rev.serviceId._id}`}
+                          className="font-semibold text-indigo-600 hover:underline truncate max-w-md"
+                        >
+                          {rev.serviceId.title}
+                        </Link>
+                      </div>
+                    )}
+                    <ReviewCard
+                      review={rev}
+                      currentUserId={authUser?._id}
+                      onReviewUpdated={handleReviewUpdated}
+                    />
+                  </div>
+                ))}
+
+                {/* Pagination Controls */}
+                {userReviewsPagination.pages > 1 && (
+                  <div className="flex items-center justify-between pt-4 text-xs">
+                    <button
+                      disabled={userReviewsPagination.page <= 1 || userReviewsLoading}
+                      onClick={() => fetchUserReviews(targetId, userReviewsPagination.page - 1)}
+                      className="px-3.5 py-1.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-slate-500 font-medium">
+                      Page {userReviewsPagination.page} of {userReviewsPagination.pages}
+                    </span>
+                    <button
+                      disabled={userReviewsPagination.page >= userReviewsPagination.pages || userReviewsLoading}
+                      onClick={() => fetchUserReviews(targetId, userReviewsPagination.page + 1)}
+                      className="px-3.5 py-1.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm space-y-3">
+                <MessageSquare className="w-10 h-10 text-amber-400 mx-auto" />
+                <h3 className="text-lg font-bold text-slate-900">No Peer Reviews Yet</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  {isMe
+                    ? 'When you complete client orders, reviews and ratings from fellow students will appear here.'
+                    : 'This student freelancer has not received client reviews yet.'}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

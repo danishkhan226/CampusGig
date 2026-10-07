@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as serviceService from '../services/serviceService';
+import * as reviewService from '../services/reviewService';
 import ServiceCard from '../components/ServiceCard';
 import VerifiedBadge from '../components/VerifiedBadge';
+import StarRating from '../components/StarRating';
+import ReviewCard from '../components/ReviewCard';
 import { useAuth } from '../context/AuthContext';
 import { 
   Star, 
@@ -21,7 +24,8 @@ import {
   Trash2, 
   ArrowRight,
   Eye,
-  MessageSquare
+  MessageSquare,
+  Filter
 } from 'lucide-react';
 
 export default function ServiceDetailPage() {
@@ -36,10 +40,47 @@ export default function ServiceDetailPage() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
+  // Phase 8: Reviews State
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({ totalReviews: 0, averageRating: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [ratingFilter, setRatingFilter] = useState(null);
+  const [reviewsPagination, setReviewsPagination] = useState({ page: 1, pages: 1, total: 0 });
+
   useEffect(() => {
     fetchServiceDetail(id);
+    fetchServiceReviews(id, null, 1);
     window.scrollTo(0, 0);
   }, [id]);
+
+  const fetchServiceReviews = async (serviceId, rating, page = 1) => {
+    try {
+      setReviewsLoading(true);
+      const params = { page, limit: 5 };
+      if (rating) params.rating = rating;
+      const res = await reviewService.getServiceReviews(serviceId, params);
+      setReviews(res.data?.reviews || []);
+      if (res.data?.stats) {
+        setReviewStats(res.data.stats);
+      }
+      if (res.data?.pagination) {
+        setReviewsPagination(res.data.pagination);
+      }
+    } catch {
+      // quiet fail for reviews
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleRatingFilterChange = (val) => {
+    setRatingFilter(val);
+    fetchServiceReviews(id, val, 1);
+  };
+
+  const handleReviewUpdated = (updated) => {
+    setReviews((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
+  };
 
   const fetchServiceDetail = async (serviceId) => {
     try {
@@ -254,18 +295,147 @@ export default function ServiceDetailPage() {
               </div>
             )}
 
-            {/* Reviews Section Preview */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
-                  <span>Peer Reviews & Ratings ({service.reviewCount})</span>
-                </h3>
-                <span className="text-xs text-slate-400">Phase 8 Ready</span>
+            {/* Reviews & Ratings Section */}
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                    <span>Peer Reviews & Ratings</span>
+                    <span className="text-sm font-normal text-slate-400">
+                      ({reviewStats.totalReviews || service.reviewCount || 0})
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Authentic feedback from verified student clients who completed this gig.
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Only verified student buyers who have completed an order can leave authentic reviews and ratings.
-              </p>
+
+              {/* Rating Summary & Breakdown Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-5 rounded-2xl bg-slate-50/70 border border-slate-100">
+                {/* Average Score */}
+                <div className="flex flex-col items-center justify-center text-center p-3 sm:border-r border-slate-200">
+                  <span className="text-4xl font-extrabold text-slate-900">
+                    {reviewStats.averageRating > 0 ? reviewStats.averageRating.toFixed(1) : (service.rating > 0 ? service.rating.toFixed(1) : '0.0')}
+                  </span>
+                  <div className="my-1.5">
+                    <StarRating
+                      rating={reviewStats.averageRating || service.rating || 0}
+                      size="md"
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    Based on {reviewStats.totalReviews || service.reviewCount || 0} reviews
+                  </span>
+                </div>
+
+                {/* Rating Breakdown Bars */}
+                <div className="md:col-span-2 space-y-2 flex flex-col justify-center">
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const count = reviewStats.breakdown?.[stars] || 0;
+                    const total = reviewStats.totalReviews || 1;
+                    const pct = reviewStats.totalReviews > 0 ? Math.round((count / total) * 100) : 0;
+                    return (
+                      <div key={stars} className="flex items-center gap-3 text-xs">
+                        <span className="w-12 text-slate-600 font-medium flex items-center gap-1">
+                          <span>{stars}</span>
+                          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                        </span>
+                        <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
+                          <div
+                            className="h-full bg-amber-400 rounded-full transition-all duration-300"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-10 text-right text-slate-400 font-mono text-[11px]">
+                          {count}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Star Filter Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 text-xs">
+                <button
+                  onClick={() => handleRatingFilterChange(null)}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition cursor-pointer shrink-0 ${
+                    ratingFilter === null
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  All ({reviewStats.totalReviews || 0})
+                </button>
+                {[5, 4, 3, 2, 1].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleRatingFilterChange(s)}
+                    className={`px-3 py-1.5 rounded-xl font-semibold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                      ratingFilter === s
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>{s} Stars</span>
+                    <span className="text-[10px] opacity-80">({reviewStats.breakdown?.[s] || 0})</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Reviews List */}
+              {reviewsLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                  <Loader2 className="w-6 h-6 animate-spin mb-2 text-indigo-600" />
+                  <span className="text-xs">Loading reviews...</span>
+                </div>
+              ) : reviews.length > 0 ? (
+                <div className="space-y-4 pt-2">
+                  {reviews.map((rev) => (
+                    <ReviewCard
+                      key={rev._id}
+                      review={rev}
+                      currentUserId={authUser?._id}
+                      onReviewUpdated={handleReviewUpdated}
+                    />
+                  ))}
+
+                  {/* Pagination Controls if multiple pages */}
+                  {reviewsPagination.pages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs">
+                      <button
+                        disabled={reviewsPagination.page <= 1 || reviewsLoading}
+                        onClick={() => fetchServiceReviews(id, ratingFilter, reviewsPagination.page - 1)}
+                        className="px-3.5 py-1.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-slate-500 font-medium">
+                        Page {reviewsPagination.page} of {reviewsPagination.pages}
+                      </span>
+                      <button
+                        disabled={reviewsPagination.page >= reviewsPagination.pages || reviewsLoading}
+                        onClick={() => fetchServiceReviews(id, ratingFilter, reviewsPagination.page + 1)}
+                        className="px-3.5 py-1.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-slate-50 text-center space-y-2 border border-dashed border-slate-200">
+                  <MessageSquare className="w-8 h-8 text-slate-400 mx-auto" />
+                  <h4 className="text-sm font-bold text-slate-700">No reviews yet</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    {ratingFilter
+                      ? `No ${ratingFilter}-star reviews found for this gig.`
+                      : 'Be the first student client to hire this peer and leave a review once the gig is completed!'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
