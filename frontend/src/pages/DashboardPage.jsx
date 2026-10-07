@@ -14,7 +14,10 @@ import {
   Briefcase, 
   LogOut,
   ArrowRight,
-  Clock
+  Clock,
+  Plus,
+  Compass,
+  MessageSquare
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -115,7 +118,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Account Details & Phase 2 Auth Telemetry */}
+        {/* Account Details & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* User Details */}
           <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
@@ -165,42 +168,50 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Phase 2 Auth Security Card */}
+          {/* Quick Actions Card */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 text-emerald-600 font-semibold text-sm">
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-              <span>Phase 2 Auth Guard Active</span>
-            </div>
+            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+              Quick Shortcuts
+            </h3>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Your authentication session is backed by:
-            </p>
-
-            <ul className="space-y-2 text-xs text-slate-700">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span><strong>HTTP-only cookies</strong> (XSS shielded)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span><strong>bcrypt</strong> password hashing</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span><strong>JWT signature</strong> server verification</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span><strong>No sensitive tokens</strong> in localStorage</span>
-              </li>
-            </ul>
-
-            <div className="pt-4 border-t border-slate-100">
+            <div className="space-y-2">
               <Link
-                to="/"
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center justify-center gap-2 transition"
+                to="/services/new"
+                className="w-full py-2.5 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center justify-between transition shadow-xs"
               >
-                <span>Return to Marketplace Landing</span>
+                <span className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Post a New Gig
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <Link
+                to="/explore"
+                className="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-between transition"
+              >
+                <span className="flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-indigo-500" /> Browse Marketplace
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <Link
+                to="/chat"
+                className="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-between transition"
+              >
+                <span className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-indigo-500" /> Messages & Chat
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <Link
+                to="/orders"
+                className="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-between transition"
+              >
+                <span className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-indigo-500" /> My Orders
+                </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

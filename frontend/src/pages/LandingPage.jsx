@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Code, 
@@ -13,38 +13,13 @@ import {
   CheckCircle2, 
   ArrowRight, 
   Search,
-  Server,
-  HardDrive,
   Globe,
-  RefreshCw,
   Wallet,
   Star,
   Users
 } from 'lucide-react';
-import { getHealthStatus } from '../services/healthService';
 
 export default function LandingPage() {
-  const [health, setHealth] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchHealth = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await getHealthStatus();
-      setHealth(res.data);
-    } catch (err) {
-      console.error('Health check failed:', err);
-      setError(err.message || 'Unable to connect to backend server');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHealth();
-  }, []);
 
   const categories = [
     { name: 'Development', icon: Code, count: '120+ student devs', color: 'from-blue-500 to-indigo-600' },
@@ -59,38 +34,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Live System Status Notification Bar */}
-      <div className="bg-slate-900 border-b border-slate-800 text-xs py-2 px-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${health?.database?.connected ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${health?.database?.connected ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-            </span>
-            <span className="font-medium text-slate-300">Phase 1 Architecture Status:</span>
-            <span className="text-slate-400">
-              {loading ? 'Verifying system links...' : error ? 'Connection Warning' : 'Frontend ↔ Express Backend ↔ MongoDB Online'}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4 text-slate-400">
-            <span className="flex items-center gap-1.5">
-              <HardDrive className="w-3.5 h-3.5 text-indigo-400" />
-              <span>DB: <strong className="text-slate-200">{health?.database?.name || 'campusgig'}</strong> ({health?.database?.status || 'checking'})</span>
-            </span>
-            <button 
-              onClick={fetchHealth} 
-              disabled={loading}
-              className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
-              title="Refresh connection test"
-            >
-              <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-              <span>Ping</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-24 md:pt-28 md:pb-32 bg-gradient-to-b from-white via-indigo-50/30 to-slate-50">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40"></div>
@@ -145,94 +88,6 @@ export default function LandingPage() {
               <div className="p-4 rounded-xl bg-white border border-slate-100 shadow-xs">
                 <p className="text-2xl font-bold text-slate-900">4.9 ★</p>
                 <p className="text-xs text-slate-500">Peer Satisfaction</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Full-Stack Architecture Live Telemetry Card */}
-      <section className="py-12 bg-white border-y border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-6 sm:p-8 text-white shadow-xl">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
-              <div>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  Phase 1 Integration Verified
-                </span>
-                <h3 className="text-2xl font-bold mt-2">
-                  Live Stack Telemetry (React ↔ Express ↔ MongoDB)
-                </h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  Active connection verified between client browser, Express REST API, and MongoDB instance.
-                </p>
-              </div>
-              <button
-                onClick={fetchHealth}
-                disabled={loading}
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold flex items-center gap-2 transition cursor-pointer"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>Test Live Connection</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-              {/* Frontend Tile */}
-              <div className="p-5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-white">Frontend Client</h4>
-                    <p className="text-xs text-slate-400">React 19 + Vite + Tailwind</p>
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Status</span>
-                  <span className="text-emerald-400 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Operational
-                  </span>
-                </div>
-              </div>
-
-              {/* Backend Tile */}
-              <div className="p-5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                    <Server className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-white">Backend Engine</h4>
-                    <p className="text-xs text-slate-400">Express.js API Layer</p>
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Status</span>
-                  <span className={`${health?.status === 'ok' ? 'text-emerald-400' : 'text-amber-400'} font-medium flex items-center gap-1`}>
-                    <CheckCircle2 className="w-3.5 h-3.5" /> {health?.status === 'ok' ? 'Responding (200 OK)' : 'Connecting...'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Database Tile */}
-              <div className="p-5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                    <HardDrive className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-white">Database</h4>
-                    <p className="text-xs text-slate-400">MongoDB Mongoose</p>
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Cluster</span>
-                  <span className={`${health?.database?.connected ? 'text-emerald-400' : 'text-amber-400'} font-medium flex items-center gap-1`}>
-                    <CheckCircle2 className="w-3.5 h-3.5" /> {health?.database?.status || 'Checking'} ({health?.database?.name || 'campusgig'})
-                  </span>
-                </div>
               </div>
             </div>
           </div>
