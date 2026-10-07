@@ -4,9 +4,9 @@
 
 ## 🌐 Live Demo
 
-**Frontend:** [CampusGig Live Website](https://campusgig-frontend-liard.vercel.app?utm_source=chatgpt.com)
+**Frontend:** [CampusGig Live Website](campusgig-frontend-liard.vercel.app)
 
-**Backend API:** [CampusGig Backend API](https://campusgig-backend.vercel.app/api?utm_source=chatgpt.com)
+**Backend API:** [CampusGig Backend API](campusgig-backend.vercel.app)
 
 ## 🚀 Features
 
