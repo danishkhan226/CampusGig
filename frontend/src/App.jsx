@@ -18,6 +18,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import OrdersListPage from './pages/OrdersListPage';
 import ChatPage from './pages/ChatPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminRoute from './components/AdminRoute';
 
 export default function App() {
   return (
@@ -112,6 +114,14 @@ export default function App() {
                   <ProtectedRoute>
                     <ChatPage />
                   </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboardPage />
+                  </AdminRoute>
                 }
               />
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, GraduationCap, LogOut, LayoutDashboard, User as UserIcon, Package, MessageSquare } from 'lucide-react';
+import { Sparkles, GraduationCap, LogOut, LayoutDashboard, User as UserIcon, Package, MessageSquare, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as chatService from '../services/chatService';
 import { getSocket } from '../services/socket';
@@ -118,6 +118,17 @@ export default function Navbar() {
                   <LayoutDashboard className="w-3.5 h-3.5 text-slate-500" />
                   <span>Dashboard</span>
                 </Link>
+
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-700 transition"
+                    title="CampusGig Admin Control Panel"
+                  >
+                    <ShieldAlert className="w-3.5 h-3.5 text-purple-600" />
+                    <span className="hidden sm:inline">Admin</span>
+                  </Link>
+                )}
 
                 <Link
                   to="/profile/me"
