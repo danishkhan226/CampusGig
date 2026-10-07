@@ -36,6 +36,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.loginUser(credentials);
       if (response?.data?.user) {
+        if (response.data.token) {
+          try { localStorage.setItem('campusgig_token', response.data.token); } catch (e) {}
+        }
         setUser(response.data.user);
         return { success: true, user: response.data.user };
       }
@@ -51,6 +54,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.registerUser(userData);
       if (response?.data?.user) {
+        if (response.data.token) {
+          try { localStorage.setItem('campusgig_token', response.data.token); } catch (e) {}
+        }
         setUser(response.data.user);
         return { success: true, user: response.data.user };
       }
@@ -63,6 +69,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      try { localStorage.removeItem('campusgig_token'); } catch (e) {}
       await authService.logoutUser();
     } catch (err) {
       console.error('Logout error:', err);

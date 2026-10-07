@@ -13,8 +13,14 @@ const getSocketUrl = () => {
 export const initSocketClient = () => {
   if (!socket) {
     const url = getSocketUrl();
+    let token = null;
+    try {
+      token = localStorage.getItem('campusgig_token');
+    } catch (e) {}
+
     socket = io(url, {
       withCredentials: true,
+      auth: { token },
       autoConnect: false,
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,

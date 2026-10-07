@@ -28,7 +28,7 @@ export const getCookieOptions = () => {
   return {
     httpOnly: true, // Prevents XSS script access
     secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax', // Required for cross-domain cookies between frontend and backend on Vercel
     maxAge: COOKIE_EXPIRES_DAYS * 24 * 60 * 60 * 1000 // 7 days in milliseconds
   };
 };
@@ -66,7 +66,8 @@ export const sendTokenResponse = (res, user, statusCode = 200, message = 'Succes
     success: true,
     message,
     data: {
-      user: sanitizedUser
+      user: sanitizedUser,
+      token
     }
   });
 };
@@ -79,7 +80,7 @@ export const clearTokenCookie = (res) => {
   res.cookie('token', '', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     expires: new Date(0)
   });
 };
