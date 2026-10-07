@@ -328,7 +328,7 @@ export default function ChatPage() {
     try {
       setUploadingFiles(true);
       const res = await uploadService.uploadDeliveryFiles(files);
-      const urls = res.data?.data?.urls || [];
+      const urls = res.data?.urls || res.data?.data?.urls || (Array.isArray(res.data) ? res.data : []);
       const newAttachments = urls.map((url, i) => ({
         url,
         name: files[i]?.name || `attachment_${i + 1}`,
@@ -345,7 +345,8 @@ export default function ChatPage() {
   // Helper to extract the other peer in conversation
   const getOtherParticipant = (conv) => {
     if (!conv || !conv.participants) return {};
-    return conv.participants.find((p) => p._id !== user?._id) || conv.participants[0] || {};
+    const myId = String(user?._id || user?.id || '');
+    return conv.participants.find((p) => String(p._id || p) !== myId) || conv.participants[0] || {};
   };
 
   // Filtered conversations by search
@@ -582,7 +583,10 @@ export default function ChatPage() {
                   </div>
                 ) : messages.length > 0 ? (
                   messages.map((msg, idx) => {
-                    const isMe = msg.senderId?._id === user?._id || msg.senderId === user?._id;
+                    const msgSenderId = String(msg.senderId?._id || msg.senderId || '');
+                    const currentUserId = String(user?._id || user?.id || '');
+                    const isMe = Boolean(msgSenderId && currentUserId && msgSenderId === currentUserId);
+                    const senderName = isMe ? 'You' : (msg.senderId?.name || activePeer?.name || 'Peer');
                     const time = new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -591,62 +595,86 @@ export default function ChatPage() {
                     return (
                       <div
                         key={msg._id || idx}
-                        className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                        className={`flex gap-2.5 ${isMe ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div
-                          className={`max-w-[85%] sm:max-w-md px-4 py-3 rounded-2xl text-xs sm:text-sm shadow-xs ${
-                            isMe
-                              ? 'bg-indigo-600 text-white rounded-br-xs'
-                              : 'bg-white text-slate-800 border border-slate-200/80 rounded-bl-xs'
-                          }`}
-                        >
-                          {/* Message Text */}
-                          {msg.text && (
-                            <p className="whitespace-pre-wrap leading-relaxed break-words">
-                              {msg.text}
-                            </p>
-                          )}
-
-                          {/* Attachments if any */}
-                          {msg.attachments && msg.attachments.length > 0 && (
-                            <div className="mt-2 space-y-1.5">
-                              {msg.attachments.map((att, aIdx) => (
-                                <a
-                                  key={aIdx}
-                                  href={att.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 p-2 rounded-xl text-xs transition ${
-                                    isMe
-                                      ? 'bg-white/10 hover:bg-white/20 text-white'
-                                      : 'bg-slate-100 hover:bg-slate-200 text-indigo-700 font-semibold'
-                                  }`}
-                                >
-                                  {att.fileType === 'image' ? (
-                                    <ImageIcon className="w-4 h-4 shrink-0" />
-                                  ) : (
-                                    <FileText className="w-4 h-4 shrink-0" />
-                                  )}
-                                  <span className="truncate max-w-[180px]">{att.name || 'Attachment'}</span>
-                                  <ExternalLink className="w-3 h-3 ml-auto opacity-70 shrink-0" />
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Message Timestamp & Read Status */}
-                        <div className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-slate-400">
-                          <span>{time}</span>
-                          {isMe && (
-                            <span>
-                              {msg.read ? (
-                                <CheckCheck className="w-3.5 h-3.5 text-sky-500 inline" />
+                        {/* Peer Avatar on Left for incoming messages */}
+                        {!isMe && (
+                          <div className="shrink-0 self-end mb-5">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-sky-500 text-white font-bold text-xs flex items-center justify-center overflow-hidden shadow-xs">
+                              {activePeer?.profileImage ? (
+                                <img
+                                  src={activePeer.profileImage}
+                                  alt={senderName}
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
-                                <Check className="w-3.5 h-3.5 text-slate-400 inline" />
+                                <span>{senderName.charAt(0).toUpperCase()}</span>
                               )}
-                            </span>
-                          )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className={`flex flex-col max-w-[85%] sm:max-w-md ${isMe ? 'items-end' : 'items-start'}`}>
+                          {/* Sender label */}
+                          <span className={`text-[10px] font-semibold mb-1 px-1 ${isMe ? 'text-indigo-600' : 'text-slate-500'}`}>
+                            {senderName}
+                          </span>
+
+                          <div
+                            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm shadow-xs ${
+                              isMe
+                                ? 'bg-indigo-600 text-white rounded-br-xs'
+                                : 'bg-slate-100 text-slate-800 border border-slate-200/90 rounded-bl-xs'
+                            }`}
+                          >
+                            {/* Message Text */}
+                            {msg.text && (
+                              <p className="whitespace-pre-wrap leading-relaxed break-words">
+                                {msg.text}
+                              </p>
+                            )}
+
+                            {/* Attachments if any */}
+                            {msg.attachments && msg.attachments.length > 0 && (
+                              <div className="mt-2 space-y-1.5">
+                                {msg.attachments.map((att, aIdx) => (
+                                  <a
+                                    key={aIdx}
+                                    href={att.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center gap-2 p-2 rounded-xl text-xs transition ${
+                                      isMe
+                                        ? 'bg-white/15 hover:bg-white/25 text-white'
+                                        : 'bg-white hover:bg-slate-200 text-indigo-700 font-semibold border border-slate-200'
+                                    }`}
+                                  >
+                                    {att.fileType === 'image' ? (
+                                      <ImageIcon className="w-4 h-4 shrink-0" />
+                                    ) : (
+                                      <FileText className="w-4 h-4 shrink-0" />
+                                    )}
+                                    <span className="truncate max-w-[180px]">{att.name || 'Attachment'}</span>
+                                    <ExternalLink className="w-3 h-3 ml-auto opacity-70 shrink-0" />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Message Timestamp & Read Status */}
+                          <div className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-slate-400">
+                            <span>{time}</span>
+                            {isMe && (
+                              <span>
+                                {msg.read ? (
+                                  <CheckCheck className="w-3.5 h-3.5 text-sky-500 inline" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5 text-slate-400 inline" />
+                                )}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );

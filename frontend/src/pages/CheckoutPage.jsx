@@ -25,7 +25,7 @@ import { useToast } from '../context/ToastContext.jsx';
     const fetchService = async () => {
       try {
         const res = await serviceService.getServiceById(serviceId);
-        setService(res.data.data);
+        setService(res.data?.data?.service || res.data?.service || res.data?.data || res.data);
       } catch {
         setError('Service not found.');
       } finally {
@@ -45,12 +45,12 @@ import { useToast } from '../context/ToastContext.jsx';
     try {
       // 1. Create CampusGig order
       const res = await orderService.createOrder(serviceId, requirements);
-      const order = res.data.data;
+      const order = res.data?.data || res.data;
       const orderId = order._id;
 
       // 2. Create Razorpay Order on Backend
       const paymentOrderRes = await paymentService.createPaymentOrder(orderId);
-      const paymentData = paymentOrderRes.data.data;
+      const paymentData = paymentOrderRes.data?.data || paymentOrderRes.data;
 
       // 3. Check if simulated or live Razorpay
       if (paymentData.isSimulation) {

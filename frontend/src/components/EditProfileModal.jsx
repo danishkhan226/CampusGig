@@ -173,11 +173,16 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
                       try {
                         setLoading(true);
                         const res = await uploadService.uploadAvatar(e.target.files[0]);
-                        const newUrl = res.data.data.url;
-                        setFormData((prev) => ({ ...prev, profileImage: newUrl }));
-                        updateUserState({ ...user, profileImage: newUrl });
+                        const newUrl = res.data?.url || res.data?.data?.url || res.url;
+                        if (newUrl) {
+                          setFormData((prev) => ({ ...prev, profileImage: newUrl }));
+                          updateUserState({ ...user, profileImage: newUrl });
+                          toast.success('Avatar uploaded successfully!');
+                        } else {
+                          throw new Error('No URL returned from upload');
+                        }
                       } catch (err) {
-                        setError('Failed to upload avatar image.');
+                        setError(err.message || 'Failed to upload avatar image.');
                       } finally {
                         setLoading(false);
                       }

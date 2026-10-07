@@ -68,6 +68,11 @@ export const sendVerificationEmail = async (toEmail, otp, userName = 'Student') 
     `
   };
 
-  await transporter.sendMail(mailOptions);
-  return true;
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (sendErr) {
+    console.error('[Email Service] Failed to send email:', sendErr.message);
+    return false;
+  }
 };

@@ -102,9 +102,9 @@ export default function OrderDetailPage() {
   const fetchOrder = async () => {
     try {
       const res = await orderService.getOrder(id);
-      const orderData = res.data.data;
+      const orderData = res.data?.data || res.data;
       setOrder(orderData);
-      if (orderData.isReviewed) {
+      if (orderData?.isReviewed) {
         fetchReview(orderData._id);
       }
     } catch (err) {
@@ -317,9 +317,10 @@ export default function OrderDetailPage() {
                               try {
                                 setUploadingDelivery(true);
                                 const res = await uploadService.uploadDeliveryFiles(e.target.files);
-                                setDeliveryFiles((prev) => [...prev, ...res.data.data.urls]);
+                                const urls = res.data?.urls || res.data?.data?.urls || (Array.isArray(res.data) ? res.data : []);
+                                setDeliveryFiles((prev) => [...prev, ...urls]);
                               } catch (uploadErr) {
-                                setError('File upload failed. Please try again.');
+                                setError(uploadErr.message || 'File upload failed. Please try again.');
                               } finally {
                                 setUploadingDelivery(false);
                               }

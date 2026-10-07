@@ -189,13 +189,13 @@ A college student at ${collegeName || 'university'} wants to improve their freel
 Current Bio: "${bio || 'Student developer looking for projects.'}"
 Skills: "${skills.join(', ')}"
 
-Write an engaging, trustworthy, and professional bio (around 60-90 words). Highlight technical skills, problem-solving passion, and student work ethic.
-Return ONLY plain text.
+Write an engaging, trustworthy, and professional bio. It MUST be strictly under 500 characters (not words — characters). Highlight technical skills, problem-solving passion, and student work ethic. Keep it concise and punchy.
+Return ONLY plain text. No hashtags, no quotes.
 `;
 
       const result = await model.generateContent(prompt);
       return {
-        enhancedBio: result.response.text().trim(),
+        enhancedBio: result.response.text().trim().slice(0, 500),
         isAI: true
       };
     } catch (err) {

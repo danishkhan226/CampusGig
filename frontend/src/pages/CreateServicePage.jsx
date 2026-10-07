@@ -71,13 +71,13 @@ export default function CreateServicePage() {
       setUploadingImage(true);
       setError('');
       const res = await uploadService.uploadServiceImages(files);
-      const uploadedUrls = res.data.data.urls;
+      const uploadedUrls = res.data?.urls || res.data?.data?.urls || (Array.isArray(res.data) ? res.data : []);
       setFormData((prev) => ({
         ...prev,
         images: [...prev.images, ...uploadedUrls]
       }));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to upload image to ImageKit.');
+      setError(err.message || err.response?.data?.message || 'Failed to upload image to ImageKit.');
     } finally {
       setUploadingImage(false);
     }

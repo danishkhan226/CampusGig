@@ -32,9 +32,10 @@ export default function OrdersListPage() {
         role: activeTab,
         status: statusFilter || undefined
       });
-      setOrders(res.data.data.orders);
+      const orderList = res.data?.orders || res.data?.data?.orders || (Array.isArray(res.data) ? res.data : []);
+      setOrders(orderList);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch orders.');
+      setError(err.message || err.response?.data?.message || 'Failed to fetch orders.');
     } finally {
       setLoading(false);
     }
