@@ -9,6 +9,7 @@ import * as uploadService from '../services/uploadService.js';
 import * as reviewService from '../services/reviewService.js';
 import * as chatService from '../services/chatService.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 import ReviewModal from '../components/ReviewModal.jsx';
 import ReviewCard from '../components/ReviewCard.jsx';
 
@@ -80,6 +81,7 @@ function ProgressBar({ status }) {
 export default function OrderDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const justPlaced = location.state?.justPlaced;
@@ -422,7 +424,7 @@ export default function OrderDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowReviewModal(true)}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-bold shadow-md shadow-amber-100 transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-bold shadow-md shadow-amber-100 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Star className="h-4 w-4 fill-white" />
                   Rate & Review Freelancer
@@ -506,7 +508,7 @@ export default function OrderDetailPage() {
                     const convId = res.data?.conversation?._id;
                     navigate(`/chat/${convId}`);
                   } catch (err) {
-                    alert('Could not open chat: ' + (err.message || 'Error'));
+                    toast.error('Could not open chat: ' + (err.message || 'Error'));
                   }
                 }}
                 className="w-full py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
@@ -554,7 +556,7 @@ export default function OrderDetailPage() {
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Payment ID</span>
-                <span className="font-mono text-xs text-slate-700 truncate max-w-[140px]">
+                <span className="font-mono text-xs text-slate-700 truncate max-w-35">
                   {order.razorpayPaymentId || 'N/A'}
                 </span>
               </div>

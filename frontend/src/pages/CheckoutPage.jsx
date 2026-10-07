@@ -6,11 +6,13 @@ import * as orderService from '../services/orderService.js';
 import * as paymentService from '../services/paymentService.js';
 import * as aiService from '../services/aiService.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 
  export default function CheckoutPage() {
   const { id: serviceId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
 
   const [service, setService] = useState(null);
   const [requirements, setRequirements] = useState('');
@@ -188,7 +190,7 @@ import { useAuth } from '../context/AuthContext.jsx';
                             setRequirements(res.data.enhancedRequirements);
                           }
                         } catch (err) {
-                          alert('AI enhancement failed: ' + (err.message || 'Error'));
+                          toast.error('AI enhancement failed: ' + (err.message || 'Error'));
                         } finally {
                           setEnhancingAI(false);
                         }

@@ -18,6 +18,7 @@ import * as userService from '../services/userService';
 import * as uploadService from '../services/uploadService';
 import * as aiService from '../services/aiService';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext.jsx';
 
 const PRESET_AVATARS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
@@ -29,6 +30,7 @@ const PRESET_AVATARS = [
 
 export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
   const { user, updateUserState } = useAuth();
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -276,7 +278,7 @@ export default function EditProfileModal({ isOpen, onClose, onUpdated }) {
                         setFormData((prev) => ({ ...prev, bio: res.data.enhancedBio }));
                       }
                     } catch (err) {
-                      alert('AI bio enhance failed: ' + (err.message || 'Error'));
+                      toast.error('AI bio enhance failed: ' + (err.message || 'Error'));
                     } finally {
                       setEnhancingBio(false);
                     }

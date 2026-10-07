@@ -39,6 +39,11 @@ export const protect = async (req, res, next) => {
       return sendError(res, 'User account associated with this session no longer exists.', 401);
     }
 
+    // Check if account has been suspended by admin
+    if (user.isSuspended) {
+      return sendError(res, 'Your account has been suspended. Please contact support.', 403);
+    }
+
     // Attach user to request object
     req.user = user;
     next();

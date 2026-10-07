@@ -8,6 +8,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import StarRating from '../components/StarRating';
 import ReviewCard from '../components/ReviewCard';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext.jsx';
 import { 
   Star, 
   Clock, 
@@ -32,6 +33,7 @@ import {
 export default function ServiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const { user: authUser, isAuthenticated } = useAuth();
 
   const [service, setService] = useState(null);
@@ -107,7 +109,7 @@ export default function ServiceDetailPage() {
       await serviceService.deleteService(service._id);
       navigate('/explore');
     } catch (err) {
-      alert(err.message || 'Failed to delete gig');
+      toast.error(err.message || 'Failed to delete gig');
     } finally {
       setDeleting(false);
     }
@@ -558,7 +560,7 @@ export default function ServiceDetailPage() {
                         const convId = res.data?.conversation?._id;
                         navigate(`/chat/${convId}`);
                       } catch (err) {
-                        alert('Could not start conversation: ' + (err.message || 'Error'));
+                        toast.error('Could not start conversation: ' + (err.message || 'Error'));
                       }
                     }}
                     className="w-full py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"

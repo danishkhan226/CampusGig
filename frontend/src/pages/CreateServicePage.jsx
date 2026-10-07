@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as serviceService from '../services/serviceService';
 import * as uploadService from '../services/uploadService';
 import * as aiService from '../services/aiService';
+import { useToast } from '../context/ToastContext.jsx';
  import { 
   Sparkles, 
   ArrowLeft, 
@@ -39,6 +40,7 @@ const PRESET_GIG_IMAGES = [
 export default function CreateServicePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const isEditing = Boolean(id);
 
   const [formData, setFormData] = useState({
@@ -355,7 +357,7 @@ export default function CreateServicePage() {
                         }));
                       }
                     } catch (err) {
-                      alert('AI generation failed: ' + (err.message || 'Error'));
+                      toast.error('AI generation failed: ' + (err.message || 'Error'));
                     } finally {
                       setGeneratingAI(false);
                     }

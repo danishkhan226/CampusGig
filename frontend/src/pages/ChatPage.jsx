@@ -5,6 +5,7 @@ import * as chatService from '../services/chatService';
 import * as uploadService from '../services/uploadService';
 import * as aiService from '../services/aiService';
 import { connectSocket, getSocket } from '../services/socket';
+import { useToast } from '../context/ToastContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 import {
   MessageSquare,
@@ -34,6 +35,7 @@ export default function ChatPage() {
 
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
 
   const [conversations, setConversations] = useState([]);
   const [activeConv, setActiveConv] = useState(null);
@@ -314,7 +316,7 @@ export default function ChatPage() {
         scrollToBottom(true);
       }
     } catch (err) {
-      alert('Failed to send message: ' + (err.message || 'Error occurred'));
+      toast.error('Failed to send message: ' + (err.message || 'Error occurred'));
     }
   };
 
@@ -334,7 +336,7 @@ export default function ChatPage() {
       }));
       setAttachedFiles((prev) => [...prev, ...newAttachments]);
     } catch (err) {
-      alert('File upload failed: ' + (err.message || 'Error'));
+      toast.error('File upload failed: ' + (err.message || 'Error'));
     } finally {
       setUploadingFiles(false);
     }

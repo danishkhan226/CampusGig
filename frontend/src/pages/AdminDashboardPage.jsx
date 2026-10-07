@@ -25,6 +25,7 @@ import {
   ArrowUpRight,
   Sparkles
 } from 'lucide-react';
+import { useToast } from '../context/ToastContext.jsx';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'users' | 'services' | 'orders'
@@ -61,6 +62,7 @@ export default function AdminDashboardPage() {
   const [disputeResolution, setDisputeResolution] = useState('refund');
   const [disputeReason, setDisputeReason] = useState('');
   const [resolvingDispute, setResolvingDispute] = useState(false);
+  const toast = useToast();
 
   // Initial Load: Overview Analytics
   useEffect(() => {
@@ -148,7 +150,7 @@ export default function AdminDashboardPage() {
         prev.map((u) => (u._id === userId ? { ...u, isVerifiedStudent: updated.isVerifiedStudent } : u))
       );
     } catch (err) {
-      alert('Verification update failed: ' + err.message);
+      toast.error('Verification update failed: ' + err.message);
     }
   };
 
@@ -162,7 +164,7 @@ export default function AdminDashboardPage() {
         prev.map((u) => (u._id === userId ? { ...u, role: res.data?.user?.role } : u))
       );
     } catch (err) {
-      alert('Role update failed: ' + err.message);
+      toast.error('Role update failed: ' + err.message);
     }
   };
 
@@ -173,7 +175,7 @@ export default function AdminDashboardPage() {
         prev.map((u) => (u._id === userId ? { ...u, isSuspended: res.data?.user?.isSuspended } : u))
       );
     } catch (err) {
-      alert('Suspension update failed: ' + err.message);
+      toast.error('Suspension update failed: ' + err.message);
     }
   };
 
@@ -185,7 +187,7 @@ export default function AdminDashboardPage() {
         prev.map((s) => (s._id === serviceId ? { ...s, isActive: res.data?.service?.isActive } : s))
       );
     } catch (err) {
-      alert('Service update failed: ' + err.message);
+      toast.error('Service update failed: ' + err.message);
     }
   };
 
@@ -195,7 +197,7 @@ export default function AdminDashboardPage() {
       await adminService.deleteService(serviceId);
       setServices((prev) => prev.filter((s) => s._id !== serviceId));
     } catch (err) {
-      alert('Service deletion failed: ' + err.message);
+      toast.error('Service deletion failed: ' + err.message);
     }
   };
 
@@ -216,7 +218,7 @@ export default function AdminDashboardPage() {
       setDisputeModalOrder(null);
       setDisputeReason('');
     } catch (err) {
-      alert('Dispute resolution failed: ' + err.message);
+      toast.error('Dispute resolution failed: ' + err.message);
     } finally {
       setResolvingDispute(false);
     }
