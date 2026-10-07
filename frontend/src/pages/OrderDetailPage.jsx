@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Clock, CheckCircle, AlertCircle, Upload, RefreshCw,
-  XCircle, ArrowLeft, User, Package, Star
+  XCircle, ArrowLeft, User, Package, Star, MessageSquare
 } from 'lucide-react';
 import * as orderService from '../services/orderService.js';
 import * as uploadService from '../services/uploadService.js';
 import * as reviewService from '../services/reviewService.js';
+import * as chatService from '../services/chatService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import ReviewModal from '../components/ReviewModal.jsx';
 import ReviewCard from '../components/ReviewCard.jsx';
@@ -80,6 +81,7 @@ export default function OrderDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const justPlaced = location.state?.justPlaced;
 
   const [order, setOrder] = useState(null);
@@ -487,6 +489,31 @@ export default function OrderDetailPage() {
                   <p className="text-xs text-slate-500">{order.sellerId.collegeName}</p>
                 </div>
               </div>
+            </div>
+
+            {/* Quick Peer Chat Action */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const recipientId = isBuyer ? order.sellerId._id : order.buyerId._id;
+                    const res = await chatService.getOrCreateConversation({
+                      recipientId,
+                      orderId: order._id,
+                      serviceId: order.serviceId?._id || order.serviceId
+                    });
+                    const convId = res.data?.conversation?._id;
+                    navigate(`/chat/${convId}`);
+                  } catch (err) {
+                    alert('Could not open chat: ' + (err.message || 'Error'));
+                  }
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <MessageSquare className="w-4 h-4 text-indigo-600" />
+                <span>Chat with {isBuyer ? 'Freelancer' : 'Client'}</span>
+              </button>
             </div>
 
             {/* Deadlines */}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as serviceService from '../services/serviceService';
 import * as reviewService from '../services/reviewService';
+import * as chatService from '../services/chatService';
 import ServiceCard from '../components/ServiceCard';
 import VerifiedBadge from '../components/VerifiedBadge';
 import StarRating from '../components/StarRating';
@@ -541,12 +542,39 @@ export default function ServiceDetailPage() {
                 </div>
               </div>
 
-              <Link
-                to={`/profile/${seller._id}`}
-                className="w-full py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition block text-center"
-              >
-                <span>View Full Profile</span>
-              </Link>
+              <div className="space-y-2 pt-1">
+                {!isOwner && (
+                  <button
+                    onClick={async () => {
+                      if (!isAuthenticated) {
+                        navigate('/login', { state: { from: { pathname: `/services/${service._id}` } } });
+                        return;
+                      }
+                      try {
+                        const res = await chatService.getOrCreateConversation({
+                          recipientId: seller._id,
+                          serviceId: service._id
+                        });
+                        const convId = res.data?.conversation?._id;
+                        navigate(`/chat/${convId}`);
+                      } catch (err) {
+                        alert('Could not start conversation: ' + (err.message || 'Error'));
+                      }
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Chat with Freelancer</span>
+                  </button>
+                )}
+
+                <Link
+                  to={`/profile/${seller._id}`}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition block text-center"
+                >
+                  <span>View Full Profile</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

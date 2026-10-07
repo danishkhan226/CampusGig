@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as userService from '../services/userService';
 import * as reviewService from '../services/reviewService';
+import * as chatService from '../services/chatService';
 import VerifiedBadge from '../components/VerifiedBadge';
 import EditProfileModal from '../components/EditProfileModal';
 import StudentVerificationModal from '../components/StudentVerificationModal';
@@ -27,6 +28,7 @@ import {
 
 export default function ProfilePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
   const isMe = !id || id === 'me' || id === authUser?._id;
@@ -237,6 +239,32 @@ export default function ProfilePage() {
                     <span>Get Verified</span>
                   </button>
                 )}
+              </div>
+            )}
+
+            {!isMe && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={async () => {
+                    if (!authUser) {
+                      navigate('/login', { state: { from: { pathname: `/profile/${targetId}` } } });
+                      return;
+                    }
+                    try {
+                      const res = await chatService.getOrCreateConversation({
+                        recipientId: targetId
+                      });
+                      const convId = res.data?.conversation?._id;
+                      navigate(`/chat/${convId}`);
+                    } catch (err) {
+                      alert('Could not start conversation: ' + (err.message || 'Error'));
+                    }
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold flex items-center gap-2 transition shadow-md shadow-indigo-100 cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Message Student</span>
+                </button>
               </div>
             )}
           </div>

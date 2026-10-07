@@ -17,6 +17,7 @@ import ServiceDetailPage from './pages/ServiceDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import OrdersListPage from './pages/OrdersListPage';
+import ChatPage from './pages/ChatPage';
 
 export default function App() {
   return (
@@ -94,6 +95,22 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <OrderDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat/:conversationId"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
                   </ProtectedRoute>
                 }
               />

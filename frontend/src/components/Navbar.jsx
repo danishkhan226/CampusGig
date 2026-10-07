@@ -1,12 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, GraduationCap, LogOut, LayoutDashboard, User as UserIcon, Package } from 'lucide-react';
+import { Sparkles, GraduationCap, LogOut, LayoutDashboard, User as UserIcon, Package, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import * as chatService from '../services/chatService';
+import { getSocket } from '../services/socket';
 import VerifiedBadge from './VerifiedBadge';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Load initial unread count
+    const loadUnread = async () => {
+      try {
+        const res = await chatService.getTotalUnreadCount();
+        setUnreadCount(res.data?.unreadCount || 0);
+      } catch {
+        // quiet fail
+      }
+    };
+    loadUnread();
+
+    // Listen to live message notifications via socket
+    const socket = getSocket();
+    const handleNotification = () => {
+      setUnreadCount((prev) => prev + 1);
+    };
+
+    socket.on('message_notification', handleNotification);
+
+    return () => {
+      socket.off('message_notification', handleNotification);
+    };
+  }, [isAuthenticated]);
 
   const handleLogout = async () => {
     await logout();
@@ -59,6 +89,20 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-2.5">
+                <Link
+                  to="/chat"
+                  className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-xs font-semibold text-slate-700"
+                  title="Campus Peer Messages"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="hidden sm:inline">Messages</span>
+                  {unreadCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-600 text-white animate-pulse">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
+
                 <Link
                   to="/orders"
                   className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-xs font-semibold text-slate-700"

@@ -1,8 +1,10 @@
+import http from 'http';
 import dotenv from 'dotenv';
 dotenv.config();
 
 import app from './src/app.js';
 import { connectDB } from './src/config/db.js';
+import { initSocket } from './src/socket/index.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -11,7 +13,12 @@ const startServer = async () => {
     // Connect to database
     await connectDB();
 
-    const server = app.listen(PORT, () => {
+    const server = http.createServer(app);
+
+    // Initialize Socket.io
+    initSocket(server);
+
+    server.listen(PORT, () => {
       console.log(`[CampusGig Backend] Server running on port ${PORT}`);
       console.log(`[CampusGig Backend] Health check available at http://localhost:${PORT}/api/health`);
     });
