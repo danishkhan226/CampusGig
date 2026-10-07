@@ -5,7 +5,7 @@ const getImageKitInstance = () => {
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
   const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
 
-  if (!publicKey || !privateKey || !urlEndpoint) {
+   if (!publicKey || !privateKey || !urlEndpoint) {
     return null;
   }
 

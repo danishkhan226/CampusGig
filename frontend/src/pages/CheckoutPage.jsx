@@ -6,7 +6,7 @@ import * as orderService from '../services/orderService.js';
 import * as paymentService from '../services/paymentService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
-export default function CheckoutPage() {
+ export default function CheckoutPage() {
   const { id: serviceId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();

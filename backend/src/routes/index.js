@@ -7,7 +7,7 @@ import orderRoutes from './order.routes.js';
 import paymentRoutes from './payment.routes.js';
 import uploadRoutes from './upload.routes.js';
 
-const router = Router();
+ const router = Router();
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);

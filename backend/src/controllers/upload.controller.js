@@ -5,7 +5,7 @@ import User from '../models/User.js';
 // POST /api/upload/avatar
 export const uploadAvatar = async (req, res) => {
   try {
-    if (!req.file) {
+     if (!req.file) {
       return sendError(res, 'No image file uploaded', 400);
     }
 

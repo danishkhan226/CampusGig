@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import * as serviceService from '../services/serviceService';
 import * as uploadService from '../services/uploadService';
-import { 
+ import { 
   Sparkles, 
   ArrowLeft, 
   Plus, 

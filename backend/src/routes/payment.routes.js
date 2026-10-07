@@ -6,7 +6,7 @@ import {
   getPaymentDetails
 } from '../controllers/payment.controller.js';
 
-const router = Router();
+ const router = Router();
 
 // All payment operations require authentication
 router.use(protect);

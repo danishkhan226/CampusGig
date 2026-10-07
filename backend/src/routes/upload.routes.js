@@ -11,7 +11,7 @@ import {
   uploadDeliveryFiles
 } from '../controllers/upload.controller.js';
 
-const router = Router();
+ const router = Router();
 
 // All uploads are protected and require user authentication
 router.use(protect);

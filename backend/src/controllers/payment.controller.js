@@ -16,7 +16,7 @@ export const createPaymentOrder = async (req, res) => {
 
     return sendSuccess(res, paymentData, 'Razorpay order created successfully', 201);
   } catch (err) {
-    return sendError(res, err.message, err.status || 500);
+    return sendError(res, err.message,  err.status || 500);
   }
 };
 

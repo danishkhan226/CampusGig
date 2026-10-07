@@ -8,7 +8,7 @@ import * as orderService from '../services/orderService.js';
 import * as uploadService from '../services/uploadService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const STATUS_CONFIG = {
+ const STATUS_CONFIG = {
   pending_payment: { label: 'Pending Payment', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
   paid:            { label: 'Paid — Awaiting Acceptance', color: 'bg-blue-100 text-blue-700', icon: CheckCircle },
   accepted:        { label: 'Accepted — In Progress', color: 'bg-indigo-100 text-indigo-700', icon: Package },

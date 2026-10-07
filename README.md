@@ -51,7 +51,7 @@
 ### Other Services
 
 * Socket.io
-* Cloudinary
+* Image Kit
 * Razorpay
 
 ## 📂 Project Structure

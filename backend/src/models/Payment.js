@@ -4,7 +4,7 @@ const PAYMENT_STATUSES = ['created', 'authorized', 'captured', 'failed', 'refund
 
 const paymentSchema = new mongoose.Schema(
   {
-    userId: {
+    userId:  {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Payment must belong to a user'],

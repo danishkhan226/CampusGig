@@ -13,7 +13,7 @@ export const uploadAvatar = async (file) => {
 };
 
 // Upload service gig images (multiple)
-export const uploadServiceImages = async (files) => {
+ export const uploadServiceImages = async (files) => {
   const formData = new FormData();
   for (let i = 0; i < files.length; i++) {
     formData.append('images', files[i]);
